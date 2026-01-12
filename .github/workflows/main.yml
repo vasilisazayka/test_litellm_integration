@@ -1,4 +1,4 @@
-name: Nightly Script
+name: Test Script LiteLLM Main
 
 on:
   schedule:
