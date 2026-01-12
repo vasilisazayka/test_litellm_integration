@@ -38,8 +38,13 @@ jobs:
       - name: Run script
         run: python main.py
 
-      - name: Upload HTML artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: html-report
-          path: test_results.html
+      - name: Commit and push results
+        run: |
+          mkdir -p results
+          FILE_NAME="results/test_results_$(date +'%Y-%m-%d').html"
+          mv test_results.html $FILE_NAME
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add $FILE_NAME
+          git commit -m "Add test report for $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          git push origin main
