@@ -64,36 +64,7 @@ jobs:
 
           echo "</ul>" >> $INDEX_FILE
           echo "</body></html>" >> $INDEX_FILE
-
-      - name: Deploy report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
-          publish_branch: gh-pages
-          force_orphan: false
-      - name: Check thresholds
-        run: |
-          if [ ! -f test_stats.json ]; then
-          echo "❌ test_stats.json not found"
-          exit 1
-          fi
-
-          SYNC_ERRORS=$(jq '.sync_completion_errors' test_stats.json)
-          SUCCESS=$(jq '.overall_success_percentage' test_stats.json)
-
-          echo "Sync completion errors: $SYNC_ERRORS"
-          echo "Overall success %: $SUCCESS"
-
-          MAX_SYNC_ERRORS=5
-          MIN_SUCCESS=75
-
-          if [ "$SYNC_ERRORS" -ge "$MAX_SYNC_ERRORS" ] || (( $(echo "$SUCCESS < $MIN_SUCCESS" | bc -l) )); then
-          echo "❌ Threshold exceeded, failing the job"
-          exit 1
-          else
-          echo "✅ Thresholds OK"
-          fi
+          
       - name: Update stats table
         run: |
           STATS_JSON="test_stats.json"
@@ -135,3 +106,34 @@ jobs:
 
           sed -i "/<\/tbody>/ i \
           <tr><td>${DATE}</td><td>${TIME}</td><td>${TOTAL_ERRORS}</td><td>${SYNC_ERRORS}</td><td class='$( [ $(echo "$SUCCESS >= 75" | bc -l) -eq 1 ] && echo success || echo fail )'>${SUCCESS}</td></tr>" "$STATS_HTML"
+
+      - name: Deploy report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          force_orphan: false
+      - name: Check thresholds
+        run: |
+          if [ ! -f test_stats.json ]; then
+          echo "❌ test_stats.json not found"
+          exit 1
+          fi
+
+          SYNC_ERRORS=$(jq '.sync_completion_errors' test_stats.json)
+          SUCCESS=$(jq '.overall_success_percentage' test_stats.json)
+
+          echo "Sync completion errors: $SYNC_ERRORS"
+          echo "Overall success %: $SUCCESS"
+
+          MAX_SYNC_ERRORS=5
+          MIN_SUCCESS=75
+
+          if [ "$SYNC_ERRORS" -ge "$MAX_SYNC_ERRORS" ] || (( $(echo "$SUCCESS < $MIN_SUCCESS" | bc -l) )); then
+          echo "❌ Threshold exceeded, failing the job"
+          exit 1
+          else
+          echo "✅ Thresholds OK"
+          fi
+      
