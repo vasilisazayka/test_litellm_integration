@@ -14,6 +14,7 @@ What it does
 """
 
 import asyncio
+import json
 from html import escape
 from typing import Dict, List, Tuple, Callable, Awaitable, Union, Optional
 
@@ -403,7 +404,7 @@ def badge(success: bool, error: Optional[str], timed: bool) -> str:
     else:
         if error.startswith("litellm.UnsupportedParamsError"):
             return f'<span title="{escape(error or "")}">⚠️</span>'
-        elif 'not support' in error or 'not supported' in error:
+        elif 'not support' in error:
             return f'<span title="{escape(error or "")}">🔴</span>'
         return f'<span title="{escape(error or "")}">❌</span>'
 
@@ -457,6 +458,28 @@ def build_html(df: pd.DataFrame) -> str:
 # ─────────────────────────────────────────────  MAIN  ────────────────────────────────────────
 async def amain() -> None:
     df = await gather_results_async()
+
+    # Расчет статистики
+    total_tests = len(df)
+    successful_tests = df["success"].sum()
+    failed_tests = total_tests - successful_tests
+
+    # Ошибки только для completion_sync
+    sync_completion_failures = len(df[(df["test_case"] == "completion_sync") & (df["success"] == False)])
+
+    # Общий процент удачных тестов
+    success_rate = (successful_tests / total_tests * 100) if total_tests > 0 else 0
+
+    stats = {
+        "total_errors": int(failed_tests),
+        "sync_completion_errors": int(sync_completion_failures),
+        "overall_success_percentage": round(success_rate, 2)
+    }
+
+    # Сохранение в JSON
+    with open("test_stats.json", "w", encoding="utf-8") as jf:
+        json.dump(stats, jf, indent=4)
+
     html = build_html(df)
     with open("test_results.html", "w", encoding="utf-8") as fh:
         fh.write(html)
