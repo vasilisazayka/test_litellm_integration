@@ -41,7 +41,7 @@ jobs:
       - name: Prepare report for GitHub Pages
         run: |
           REPORT_DATE=$(date +'%Y-%m-%d')
-          mkdir -p site/reports
+          mkdir -p site/reports_main
           mv test_results.html site/reports_main/test_results_${REPORT_DATE}.html
 
       - name: Deploy report to GitHub Pages
