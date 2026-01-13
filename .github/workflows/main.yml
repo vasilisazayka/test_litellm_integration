@@ -96,7 +96,7 @@ jobs:
           fi
       - name: Update stats table
         run: |
-          STATS_JSON="site/reports_main/test_stats.json"
+          STATS_JSON="test_stats.json"
           STATS_HTML="site/stats.html"
           
           DATE=$(date +'%Y-%m-%d')
