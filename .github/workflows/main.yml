@@ -94,3 +94,44 @@ jobs:
           else
           echo "✅ Thresholds OK"
           fi
+      - name: Update stats table
+        run: |
+          STATS_JSON="site/reports_main/test_stats.json"
+          STATS_HTML="site/stats.html"
+          
+          DATE=$(date +'%Y-%m-%d')
+          TIME=$(date +'%H:%M:%S')
+          TOTAL_ERRORS=$(jq '.total_errors' "$STATS_JSON")
+          SYNC_ERRORS=$(jq '.sync_completion_errors' "$STATS_JSON")
+          SUCCESS=$(jq '.overall_success_percentage' "$STATS_JSON")
+
+          if [ ! -f "$STATS_HTML" ]; then
+          echo "<!DOCTYPE html>
+          <html lang='en'>
+          <head>
+          <meta charset='UTF-8'>
+          <title>Stats History</title>
+          <style>
+          body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+          th { background-color: #eee; }
+          .success { color: green; }
+          .fail { color: red; }
+          </style>
+          </head>
+          <body>
+          <h1>Test Stats History</h1>
+          <table>
+          <thead>
+          <tr><th>Date</th><th>Time</th><th>Total Errors</th><th>Sync Completion Errors</th><th>Success %</th></tr>
+          </thead>
+          <tbody>
+          </tbody>
+          </table>
+          </body>
+          </html>" > "$STATS_HTML"
+          fi
+
+          sed -i "/<\/tbody>/ i \
+          <tr><td>${DATE}</td><td>${TIME}</td><td>${TOTAL_ERRORS}</td><td>${SYNC_ERRORS}</td><td class='$( [ $(echo "$SUCCESS >= 75" | bc -l) -eq 1 ] && echo success || echo fail )'>${SUCCESS}</td></tr>" "$STATS_HTML"
