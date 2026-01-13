@@ -54,7 +54,7 @@ jobs:
 
           echo "<!DOCTYPE html>" > $INDEX_FILE
           echo "<html><head><meta charset='utf-8'><title>Reports</title></head><body>" >> $INDEX_FILE
-          echo "<h1>Test Reports</h1>" >> $INDEX_FILE
+          echo "<h2>Test Reports for Main Branch</h2>" >> $INDEX_FILE
           echo "<ul>" >> $INDEX_FILE
 
           find $REPORT_DIR -type f -name "*.html" | sort | while read file; do
@@ -72,3 +72,25 @@ jobs:
           publish_dir: ./site
           publish_branch: gh-pages
           force_orphan: false
+      - name: Check thresholds
+        run: |
+          if [ ! -f test_stats.json ]; then
+          echo "❌ test_stats.json not found"
+          exit 1
+          fi
+
+          SYNC_ERRORS=$(jq '.sync_completion_errors' test_stats.json)
+          SUCCESS=$(jq '.overall_success_percentage' test_stats.json)
+
+          echo "Sync completion errors: $SYNC_ERRORS"
+          echo "Overall success %: $SUCCESS"
+
+          MAX_SYNC_ERRORS=5
+          MIN_SUCCESS=75
+
+          if [ "$SYNC_ERRORS" -ge "$MAX_SYNC_ERRORS" ] || (( $(echo "$SUCCESS < $MIN_SUCCESS" | bc -l) )); then
+          echo "❌ Threshold exceeded, failing the job"
+          exit 1
+          else
+          echo "✅ Thresholds OK"
+          fi
