@@ -47,6 +47,24 @@ jobs:
           mkdir -p site/reports_main
           mv test_results.html site/reports_main/test_results_${REPORT_DATE}.html
 
+      - name: Generate index.html for GitHub Pages
+        run: |
+          INDEX_FILE=site/index.html
+          REPORT_DIR=site/reports_main
+
+          echo "<!DOCTYPE html>" > $INDEX_FILE
+          echo "<html><head><meta charset='utf-8'><title>Reports</title></head><body>" >> $INDEX_FILE
+          echo "<h1>Test Reports</h1>" >> $INDEX_FILE
+          echo "<ul>" >> $INDEX_FILE
+
+          find $REPORT_DIR -type f -name "*.html" | sort | while read file; do
+            REL_PATH="${file#site/}"
+            echo "<li><a href='${REL_PATH}'>${REL_PATH}</a></li>" >> $INDEX_FILE
+          done
+
+          echo "</ul>" >> $INDEX_FILE
+          echo "</body></html>" >> $INDEX_FILE
+
       - name: Deploy report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
