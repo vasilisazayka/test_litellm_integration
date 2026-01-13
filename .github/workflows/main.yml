@@ -5,6 +5,9 @@ on:
     # 00:30 UTC Monday
     - cron: '30 0 * * 1'
   workflow_dispatch: 
+  
+permissions:
+  contents: write
 
 jobs:
   run-and-save:
