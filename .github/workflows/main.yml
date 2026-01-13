@@ -38,13 +38,16 @@ jobs:
       - name: Run script
         run: python main.py
 
-      - name: Commit and push results
+      - name: Prepare report for GitHub Pages
         run: |
-          mkdir -p results
-          FILE_NAME="results/test_results_$(date +'%Y-%m-%d').html"
-          mv test_results.html $FILE_NAME
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add $FILE_NAME
-          git commit -m "Add test report for $(date +'%Y-%m-%d')" || echo "No changes to commit"
-          git push origin main
+          REPORT_DATE=$(date +'%Y-%m-%d')
+          mkdir -p site/reports
+          mv test_results.html site/reports_main/test_results_${REPORT_DATE}.html
+
+      - name: Deploy report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          force_orphan: false
