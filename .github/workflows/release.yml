@@ -1,0 +1,155 @@
+name: Test Script LiteLLM Release
+
+on:
+  schedule:
+    # 00:30 UTC Monday
+    - cron: '30 0 * * 1'
+  workflow_dispatch: 
+  
+permissions:
+  contents: write
+
+jobs:
+  run-and-save:
+    runs-on: ubuntu-latest
+
+    env:
+      AICORE_AUTH_URL: ${{ secrets.AICORE_AUTH_URL }}
+      AICORE_CLIENT_ID: ${{ secrets.AICORE_CLIENT_ID }}
+      AICORE_CLIENT_SECRET: ${{ secrets.AICORE_CLIENT_SECRET }}
+      AICORE_RESOURCE_GROUP: ${{ secrets.AICORE_RESOURCE_GROUP }}
+      AICORE_BASE_URL: ${{ secrets.AICORE_BASE_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          pip install pandas==2.3.3
+          pip install litellm
+          LIB_VERSION=$(python -c "import litellm; print(litellm.__version__)")
+          echo "Using LiteLLM version: $LIB_VERSION"
+
+      - name: Run script
+        run: python main.py
+
+      - name: Prepare report for GitHub Pages
+        run: |
+          REPORT_DATE=$(date +'%Y-%m-%d_%H-%M')
+          mkdir -p site/reports_releases
+          mv test_results.html site/reports_releases/test_results_${LIB_VERSION}_${REPORT_DATE}.html
+
+      - name: Generate index.html for GitHub Pages
+        run: |
+          INDEX_FILE=site/reports_releases/index.html
+          REPORT_DIR=site/reports_releases
+
+          echo "<!DOCTYPE html>" > $INDEX_FILE
+          echo "<html><head><meta charset='utf-8'><title>Reports</title></head><body>" >> $INDEX_FILE
+          echo "<h2>Test Reports for Main Branch</h2>" >> $INDEX_FILE
+          echo "<ul>" >> $INDEX_FILE
+
+          find $REPORT_DIR -type f -name "test_results_*.html" | sort | while read file; do
+            FILE_NAME="$(basename "$file")"
+            echo "<li><a href='$FILE_NAME'>$FILE_NAME</a></li>" >> "$INDEX_FILE"
+          done
+
+          echo "</ul>" >> $INDEX_FILE
+          echo "</body></html>" >> $INDEX_FILE
+
+      - name: Checkout gh-pages (for stats history)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+          
+      - name: Update stats table
+        run: |
+          STATS_JSON="test_stats.json"
+          STATS_HTML="site/reports_releases/stats.html"
+          OLD_STATS_HTML="gh-pages/reports_releases/stats.html"
+          
+          DATE=$(date +'%Y-%m-%d')
+          TIME=$(date +'%H:%M:%S')
+          TOTAL_ERRORS=$(jq '.total_errors' "$STATS_JSON")
+          SYNC_ERRORS=$(jq '.sync_completion_errors' "$STATS_JSON")
+          SUCCESS=$(jq '.overall_success_percentage' "$STATS_JSON")
+
+          if [ -f "$OLD_STATS_HTML" ]; then
+          mkdir -p site/reports_releases
+          cp "$OLD_STATS_HTML" "$STATS_HTML"
+          fi
+
+          if [ ! -f "$STATS_HTML" ]; then
+          echo "<!DOCTYPE html>
+          <html lang='en'>
+          <head>
+          <meta charset='UTF-8'>
+          <title>Stats History</title>
+          <style>
+          body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+          th { background-color: #eee; }
+          .success { color: green; }
+          .fail { color: red; }
+          </style>
+          </head>
+          <body>
+          <h1>Test Stats History</h1>
+          <table>
+          <thead>
+          <tr><th>Date</th><th>Time</th><th>Total Errors</th><th>Sync Completion Errors</th><th>Success %</th></tr>
+          </thead>
+          <tbody>
+          </tbody>
+          </table>
+          </body>
+          </html>" > "$STATS_HTML"
+          fi
+
+          sed -i "/<\/tbody>/ i \
+          <tr><td>${DATE}</td><td>${TIME}</td><td>${TOTAL_ERRORS}</td><td>${SYNC_ERRORS}</td><td class='$( [ $(echo "$SUCCESS >= 75" | bc -l) -eq 1 ] && echo success || echo fail )'>${SUCCESS}</td></tr>" "$STATS_HTML"
+
+      - name: Deploy report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site/reports_releases
+          publish_branch: gh-pages
+          destination_dir: reports_releases
+          keep_files: true
+          force_orphan: false
+          
+      - name: Check thresholds
+        run: |
+          if [ ! -f test_stats.json ]; then
+          echo "❌ test_stats.json not found"
+          exit 1
+          fi
+
+          SYNC_ERRORS=$(jq '.sync_completion_errors' test_stats.json)
+          SUCCESS=$(jq '.overall_success_percentage' test_stats.json)
+
+          echo "Sync completion errors: $SYNC_ERRORS"
+          echo "Overall success %: $SUCCESS"
+
+          MAX_SYNC_ERRORS=5
+          MIN_SUCCESS=75
+
+          if [ "$SYNC_ERRORS" -ge "$MAX_SYNC_ERRORS" ] || (( $(echo "$SUCCESS < $MIN_SUCCESS" | bc -l) )); then
+          echo "❌ Threshold exceeded, failing the job"
+          exit 1
+          else
+          echo "✅ Thresholds OK"
+          fi
+      
