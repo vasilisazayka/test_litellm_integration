@@ -49,7 +49,7 @@ jobs:
 
       - name: Generate index.html for GitHub Pages
         run: |
-          INDEX_FILE=site/index.html
+          INDEX_FILE=site/reports_main/index.html
           REPORT_DIR=site/reports_main
 
           echo "<!DOCTYPE html>" > $INDEX_FILE
@@ -58,8 +58,8 @@ jobs:
           echo "<ul>" >> $INDEX_FILE
 
           find $REPORT_DIR -type f -name "*.html" | sort | while read file; do
-            REL_PATH="${file#site/}"
-            echo "<li><a href='${REL_PATH}'>${REL_PATH}</a></li>" >> $INDEX_FILE
+            FILE_NAME="$(basename "$file")"
+            echo "<li><a href='$FILE_NAME'>$FILE_NAME</a></li>" >> "$INDEX_FILE"
           done
 
           echo "</ul>" >> $INDEX_FILE
@@ -68,7 +68,7 @@ jobs:
       - name: Update stats table
         run: |
           STATS_JSON="test_stats.json"
-          STATS_HTML="site/stats.html"
+          STATS_HTML="site/reports_main/stats.html"
           
           DATE=$(date +'%Y-%m-%d')
           TIME=$(date +'%H:%M:%S')
