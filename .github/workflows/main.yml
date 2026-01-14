@@ -64,17 +64,29 @@ jobs:
 
           echo "</ul>" >> $INDEX_FILE
           echo "</body></html>" >> $INDEX_FILE
+
+      - name: Checkout gh-pages (for stats history)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
           
       - name: Update stats table
         run: |
           STATS_JSON="test_stats.json"
           STATS_HTML="site/reports_main/stats.html"
+          OLD_STATS_HTML="gh-pages/reports_main/stats.html"
           
           DATE=$(date +'%Y-%m-%d')
           TIME=$(date +'%H:%M:%S')
           TOTAL_ERRORS=$(jq '.total_errors' "$STATS_JSON")
           SYNC_ERRORS=$(jq '.sync_completion_errors' "$STATS_JSON")
           SUCCESS=$(jq '.overall_success_percentage' "$STATS_JSON")
+
+          if [ -f "$OLD_STATS_HTML" ]; then
+          mkdir -p site/reports_main
+          cp "$OLD_STATS_HTML" "$STATS_HTML"
+          fi
 
           if [ ! -f "$STATS_HTML" ]; then
           echo "<!DOCTYPE html>
