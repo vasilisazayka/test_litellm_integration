@@ -36,8 +36,8 @@ jobs:
         run: |
           pip install pandas==2.3.3
           pip install litellm
-          LIB_VERSION=$(python -c "import litellm; print(litellm.__version__)")
-          echo "Using LiteLLM version: $LIB_VERSION"
+          LIB_VERSION=$(pip show litellm | grep ^Version: | awk '{print $2}')
+          echo "LiteLLM version: $LIB_VERSION"
 
       - name: Run script
         run: python main.py
