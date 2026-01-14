@@ -108,7 +108,7 @@ jobs:
           <h1>Test Stats History</h1>
           <table>
           <thead>
-          <tr><th>Date</th><th>Time</th><th>Total Errors</th><th>Sync Completion Errors</th><th>Success %</th></tr>
+          <tr><th>Version</th><th>Date</th><th>Time</th><th>Total Errors</th><th>Sync Completion Errors</th><th>Success %</th></tr>
           </thead>
           <tbody>
           </tbody>
@@ -118,7 +118,7 @@ jobs:
           fi
 
           sed -i "/<\/tbody>/ i \
-          <tr><td>${DATE}</td><td>${TIME}</td><td>${TOTAL_ERRORS}</td><td>${SYNC_ERRORS}</td><td class='$( [ $(echo "$SUCCESS >= 75" | bc -l) -eq 1 ] && echo success || echo fail )'>${SUCCESS}</td></tr>" "$STATS_HTML"
+          <tr><td>${LIB_VERSION}</td><td>${DATE}</td><td>${TIME}</td><td>${TOTAL_ERRORS}</td><td>${SYNC_ERRORS}</td><td class='$( [ $(echo "$SUCCESS >= 75" | bc -l) -eq 1 ] && echo success || echo fail )'>${SUCCESS}</td></tr>" "$STATS_HTML"
 
       - name: Deploy report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
