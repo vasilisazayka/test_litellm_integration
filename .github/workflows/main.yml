@@ -3,7 +3,7 @@ name: Test Script LiteLLM Main
 on:
   schedule:
     # 00:30 UTC Monday
-    - cron: '30 0 * * 1'
+    - cron: '30 0 * * *'
   workflow_dispatch: 
   
 permissions:
@@ -66,7 +66,7 @@ jobs:
           echo "<h2>Test Reports for Main Branch</h2>" >> $INDEX_FILE
           echo "<ul>" >> $INDEX_FILE
 
-          find $REPORT_DIR -type f -name "test_results_*.html" | sort | while read file; do
+          find $REPORT_DIR -type f -name "test_results_*.html" | xargs ls -1t | while read file; do
             FILE_NAME="$(basename "$file")"
             echo "<li><a href='$FILE_NAME'>$FILE_NAME</a></li>" >> "$INDEX_FILE"
           done
