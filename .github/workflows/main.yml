@@ -41,10 +41,19 @@ jobs:
       - name: Run script
         run: python main.py
 
+      - name: Checkout gh-pages (for stats history)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
       - name: Prepare report for GitHub Pages
         run: |
           REPORT_DATE=$(date +'%Y-%m-%d_%H-%M')
           mkdir -p site/reports_main
+          if [ -d "gh-pages/reports_main" ]; then
+          cp gh-pages/reports_main/test_results_*.html site/reports_main/ 2>/dev/null || true
+          fi
           mv test_results.html site/reports_main/test_results_${REPORT_DATE}.html
 
       - name: Generate index.html for GitHub Pages
@@ -64,12 +73,6 @@ jobs:
 
           echo "</ul>" >> $INDEX_FILE
           echo "</body></html>" >> $INDEX_FILE
-
-      - name: Checkout gh-pages (for stats history)
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
           
       - name: Update stats table
         run: |
