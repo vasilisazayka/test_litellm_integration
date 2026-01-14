@@ -111,9 +111,12 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+          publish_dir: ./site/reports_main
           publish_branch: gh-pages
+          destination_dir: reports_main
+          keep_files: true
           force_orphan: false
+          
       - name: Check thresholds
         run: |
           if [ ! -f test_stats.json ]; then
