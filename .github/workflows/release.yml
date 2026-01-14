@@ -65,7 +65,7 @@ jobs:
 
           echo "<!DOCTYPE html>" > $INDEX_FILE
           echo "<html><head><meta charset='utf-8'><title>Reports</title></head><body>" >> $INDEX_FILE
-          echo "<h2>Test Reports for Main Branch</h2>" >> $INDEX_FILE
+          echo "<h2>Test Reports for Releases</h2>" >> $INDEX_FILE
           echo "<ul>" >> $INDEX_FILE
 
           find $REPORT_DIR -type f -name "test_results_*.html" | xargs ls -1t | while read file; do
