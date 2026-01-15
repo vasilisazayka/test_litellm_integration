@@ -68,7 +68,7 @@ jobs:
           echo "<h2>Test Reports for Releases</h2>" >> $INDEX_FILE
           echo "<ul>" >> $INDEX_FILE
 
-          find $REPORT_DIR -type f -name "test_results_*.html" | xargs ls -1t | while read file; do
+          ls -1t "$REPORT_DIR"/test_results_*.html | while read -r file; do
             FILE_NAME="$(basename "$file")"
             echo "<li><a href='$FILE_NAME'>$FILE_NAME</a></li>" >> "$INDEX_FILE"
           done
