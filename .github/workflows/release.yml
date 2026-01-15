@@ -54,7 +54,7 @@ jobs:
           REPORT_DATE=$(date +'%Y-%m-%d_%H-%M')
           mkdir -p site/reports_releases
           if [ -d "gh-pages/reports_releases" ]; then
-          cp gh-pages/reports_main/test_results_*.html site/reports_releases/ 2>/dev/null || true
+          cp gh-pages/reports_releases/test_results_*.html site/reports_releases/ 2>/dev/null || true
           fi
           mv test_results.html site/reports_releases/test_results_${LIB_VERSION}_${REPORT_DATE}.html
 
