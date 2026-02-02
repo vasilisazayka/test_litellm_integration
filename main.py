@@ -62,14 +62,13 @@ BASE_MESSAGES = [
 
 
 def encode_image_base64_from_url(image_url: str) -> str:
-    url = srv.base_url + "/lm/scenarios/foundation-models/models"
     with httpx.Client(timeout=HTTP_TIMEOUT) as client:
         resp = client.get(image_url)
         resp.raise_for_status()
         return base64.b64encode(resp.content).decode('utf-8')
 
 
-image_url = "https://www.zastavki.com/pictures/originals/2023/_Beautiful_view_of_the_Eiffel_Tower__Paris._France_165775_.jpg"
+image_url = "https://www.pariscityvision.com/library/image/5144.jpg"
 image_base64 = encode_image_base64_from_url(image_url=image_url)
 
 def make_multimodal_messages() -> List[dict]:
