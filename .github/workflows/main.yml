@@ -39,7 +39,9 @@ jobs:
           pip install git+https://github.com/BerriAI/litellm.git@main
 
       - name: Run script
-        run: python main.py
+        run: |
+              set -euxo pipefail
+              python -u main.py
 
       - name: Checkout gh-pages (for stats history)
         uses: actions/checkout@v4
