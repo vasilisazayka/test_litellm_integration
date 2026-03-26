@@ -1,9 +1,9 @@
 name: Test Script LiteLLM Release
 
 on:
-  schedule:
-    # 00:00 UTC Monday and Thursday
-    - cron: '0 0 * * 1,4'
+  # schedule:
+  #   # 00:00 UTC Monday and Thursday
+  #   - cron: '0 0 * * 1,4'
   workflow_dispatch: 
   
 permissions:
